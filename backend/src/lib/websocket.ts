@@ -13,6 +13,11 @@ export const initializeWebSocket = (server: any) => {
       try {
         const data = JSON.parse(message) as WebSocketMessage;
         console.log('Received message:', data);
+
+        // Broadcast cursor move messages to all clients
+        if (data.type === 'CURSOR_MOVE') {
+          broadcastMessage(data);
+        }
       } catch (error) {
         console.error('Failed to parse message:', error);
       }

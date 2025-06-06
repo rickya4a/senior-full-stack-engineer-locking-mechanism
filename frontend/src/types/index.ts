@@ -16,21 +16,29 @@ export interface Lock {
 export interface Appointment {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   startTime: Date;
   endTime: Date;
-  lock: Lock | null;
+  lock?: Lock;
+}
+
+export interface CursorPosition {
+  x: number;
+  y: number;
+  appointmentId: string;
+  userId: string;
+  userName: string;
+}
+
+export type WebSocketMessageType = 'LOCK_ACQUIRED' | 'LOCK_RELEASED' | 'CURSOR_MOVE';
+
+export interface WebSocketMessage {
+  type: WebSocketMessageType;
+  appointmentId: string;
+  data: Lock | CursorPosition | null;
 }
 
 export interface AuthResponse {
   user: User;
   token: string;
-}
-
-export type WebSocketMessageType = 'LOCK_ACQUIRED' | 'LOCK_RELEASED';
-
-export interface WebSocketMessage {
-  type: WebSocketMessageType;
-  appointmentId: string;
-  data: Lock | null;
 }
