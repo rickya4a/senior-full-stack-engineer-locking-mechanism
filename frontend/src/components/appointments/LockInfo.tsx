@@ -1,54 +1,74 @@
-import { useEffect, useState } from 'react';
-import { User } from '@/types';
+import { useState } from 'react';
+import { Lock } from '@/types';
+import { useAuthStore } from '@/store/auth';
+import { toast } from 'sonner';
+import api from '@/lib/axios';
 
 interface LockInfoProps {
-  editor: User;
-  expiresAt: Date;
+  lock: Lock;
+  onLockReleased: () => void;
 }
 
-export default function LockInfo({ editor, expiresAt }: LockInfoProps) {
-  const [timeLeft, setTimeLeft] = useState<number>(0);
+export default function LockInfo({ lock, onLockReleased }: LockInfoProps) {
+  const [isConfirmingForceRelease, setIsConfirmingForceRelease] = useState(false);
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'ADMIN';
+  const isOwnLock = user?.id === lock.userId;
 
-  useEffect(() => {
-    const calculateTimeLeft = () => {
-      const now = new Date();
-      const expiry = new Date(expiresAt);
-      const diff = expiry.getTime() - now.getTime();
-      return Math.max(0, Math.floor(diff / 1000)); // in seconds
-    };
-
-    // Initial calculation
-    setTimeLeft(calculateTimeLeft());
-
-    // Update every second
-    const timer = setInterval(() => {
-      const remaining = calculateTimeLeft();
-      setTimeLeft(remaining);
-
-      // Clear interval when timer reaches 0
-      if (remaining === 0) {
-        clearInterval(timer);
+  const handleForceRelease = async () => {
+    try {
+      await api.delete(`/appointments/${lock.appointmentId}/force-release-lock`);
+      toast.success('Lock forcefully released');
+      onLockReleased();
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message || 'Failed to force release lock');
+      } else {
+        toast.error('Failed to force release lock');
       }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [expiresAt]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    } finally {
+      setIsConfirmingForceRelease(false);
+    }
   };
 
   return (
-    <div className="flex items-center space-x-2 text-sm">
-      <div className="flex items-center">
-        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2" />
-        <span className="font-medium">{editor.name}</span>
-      </div>
-      <span className="text-gray-400">•</span>
-      <div className={`font-mono ${timeLeft < 60 ? 'text-red-500' : 'text-gray-600'}`}>
-        {formatTime(timeLeft)}
+    <div className="bg-yellow-50 p-4 rounded-md">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-yellow-700">
+            Currently being edited by <span className="font-semibold">{lock.user.name}</span>
+          </p>
+          <p className="text-xs text-yellow-600 mt-1">
+            Lock expires at {new Date(lock.expiresAt).toLocaleTimeString()}
+          </p>
+        </div>
+        {isAdmin && !isOwnLock && (
+          <div>
+            {isConfirmingForceRelease ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleForceRelease}
+                  className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                >
+                  Confirm Force Release
+                </button>
+                <button
+                  onClick={() => setIsConfirmingForceRelease(false)}
+                  className="text-xs bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsConfirmingForceRelease(true)}
+                className="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600"
+              >
+                Force Release Lock
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

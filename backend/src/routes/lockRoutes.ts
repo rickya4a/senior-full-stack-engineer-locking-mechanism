@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { LockController } from '../controllers/lockController';
 import { authenticate, isAdmin } from '../middlewares/auth';
+import { adminOnly } from '../middlewares/adminOnly';
 
 const router = Router();
 
@@ -34,6 +35,14 @@ router.delete(
   '/appointments/:appointmentId/admin-release-lock',
   authenticate,
   isAdmin,
+  LockController.adminReleaseLock
+);
+
+// Admin force release lock
+router.delete(
+  '/appointments/:appointmentId/force-release-lock',
+  authenticate,
+  adminOnly,
   LockController.adminReleaseLock
 );
 

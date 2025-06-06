@@ -20,30 +20,18 @@ initializeWebSocket(server);
 // Middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3001',
-  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
-
-// Raw body parser for sendBeacon requests
-app.use((req, res, next) => {
-  if (req.headers['content-type'] === 'application/json' && req.method === 'POST') {
-    express.json()(req, res, next);
-  } else {
-    express.raw({ type: '*/*' })(req, res, next);
-  }
-});
-
-// Add request logger
+app.use(express.json());
 app.use(requestLogger);
-
-// Apply rate limiting to all routes
 app.use(rateLimiter);
 
 // Routes
 app.use('/api', authRoutes);
-app.use('/api', appointmentRoutes);
 app.use('/api', lockRoutes);
+app.use('/api', appointmentRoutes);
 
 const PORT = process.env.PORT || 3000;
 
