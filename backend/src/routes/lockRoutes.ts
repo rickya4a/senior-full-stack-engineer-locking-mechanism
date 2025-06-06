@@ -16,10 +16,18 @@ router.post(
   LockController.acquireLock
 );
 
+// For normal release lock
 router.delete(
   '/appointments/:appointmentId/release-lock',
   authenticate,
   LockController.releaseLock
+);
+
+// For sendBeacon release lock
+router.post(
+  '/appointments/release-lock',
+  authenticate,
+  LockController.postReleaseLock
 );
 
 router.delete(

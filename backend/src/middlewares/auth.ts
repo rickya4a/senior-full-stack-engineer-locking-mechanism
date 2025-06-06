@@ -12,7 +12,27 @@ declare global {
 
 export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
+    let token: string | undefined;
+
+    // Check Authorization header first
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      token = authHeader.split(' ')[1];
+    }
+
+    // For sendBeacon requests, check body
+    if (!token && req.body && typeof req.body === 'string') {
+      try {
+        const parsedBody = JSON.parse(req.body);
+        if (parsedBody.authorization) {
+          token = parsedBody.authorization.split(' ')[1];
+        }
+      } catch (e) {
+        console.error('Failed to parse request body:', e);
+      }
+    } else if (!token && req.body && req.body.authorization) {
+      token = req.body.authorization.split(' ')[1];
+    }
 
     if (!token) {
       res.status(401).json({ message: 'Authentication required' });
