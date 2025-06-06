@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma';
-import { LockResponse } from '../types';
+import { LockResponse, WebSocketMessage } from '../types';
+import { broadcastMessage } from '../lib/websocket';
 
 export class LockService {
   private static LOCK_EXPIRY_MINUTES = parseInt(process.env.LOCK_EXPIRY_MINUTES || '5');
@@ -49,6 +50,14 @@ export class LockService {
         include: { user: true }
       });
 
+      // Broadcast lock acquired message
+      const message: WebSocketMessage = {
+        type: 'LOCK_ACQUIRED',
+        appointmentId,
+        data: lock
+      };
+      broadcastMessage(message);
+
       return {
         success: true,
         message: 'Lock acquired successfully',
@@ -79,6 +88,14 @@ export class LockService {
         where: { appointmentId }
       });
 
+      // Broadcast lock released message
+      const message: WebSocketMessage = {
+        type: 'LOCK_RELEASED',
+        appointmentId,
+        data: null
+      };
+      broadcastMessage(message);
+
       return { success: true, message: 'Lock released successfully' };
     } catch (error) {
       console.error('Error releasing lock:', error);
@@ -87,13 +104,23 @@ export class LockService {
   }
 
   private static async extendLock(appointmentId: string) {
-    return prisma.lock.update({
+    const lock = await prisma.lock.update({
       where: { appointmentId },
       data: {
         expiresAt: new Date(Date.now() + this.LOCK_EXPIRY_MINUTES * 60000)
       },
       include: { user: true }
     });
+
+    // Broadcast lock acquired message (for extension)
+    const message: WebSocketMessage = {
+      type: 'LOCK_ACQUIRED',
+      appointmentId,
+      data: lock
+    };
+    broadcastMessage(message);
+
+    return lock;
   }
 
   static async getLockStatus(appointmentId: string): Promise<LockResponse> {

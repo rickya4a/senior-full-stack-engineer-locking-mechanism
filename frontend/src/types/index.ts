@@ -2,14 +2,15 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'user' | 'admin';
+  role: 'USER' | 'ADMIN';
 }
 
-export interface AppointmentLock {
+export interface Lock {
+  id: string;
   appointmentId: string;
   userId: string;
-  user: User;
   expiresAt: Date;
+  user: User;
 }
 
 export interface Appointment {
@@ -18,11 +19,18 @@ export interface Appointment {
   description: string;
   startTime: Date;
   endTime: Date;
-  createdBy: string;
-  lock?: AppointmentLock;
+  lock: Lock | null;
 }
 
 export interface AuthResponse {
   user: User;
   token: string;
+}
+
+export type WebSocketMessageType = 'LOCK_ACQUIRED' | 'LOCK_RELEASED';
+
+export interface WebSocketMessage {
+  type: WebSocketMessageType;
+  appointmentId: string;
+  data: Lock | null;
 }
