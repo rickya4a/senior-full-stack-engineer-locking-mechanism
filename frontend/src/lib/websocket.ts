@@ -1,4 +1,5 @@
 import { WebSocketMessage } from '@/types';
+import Cookies from 'js-cookie';
 
 type MessageHandler = (message: WebSocketMessage) => void;
 
@@ -18,7 +19,6 @@ class WebSocketService {
   private connect() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
     const wsUrl = apiUrl.replace(/^http/, 'ws').replace('/api', '');
-    console.log('Connecting to WebSocket:', wsUrl);
 
     this.ws = new WebSocket(wsUrl);
 
@@ -31,6 +31,10 @@ class WebSocketService {
     this.ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data) as WebSocketMessage;
+        if (data.type === 'ERROR') {
+          console.error('WebSocket error:', data.message);
+          return;
+        }
         this.messageHandlers.forEach(handler => handler(data));
       } catch (error) {
         console.error('Failed to parse WebSocket message:', error);
@@ -65,7 +69,11 @@ class WebSocketService {
 
   public send(message: WebSocketMessage) {
     if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(message));
+      const token = Cookies.get('token');
+      this.ws.send(JSON.stringify({
+        ...message,
+        token
+      }));
     } else {
       console.warn('WebSocket is not connected');
     }

@@ -32,7 +32,6 @@ export default function AppointmentGrid() {
 
     return () => {
       if (currentLock) {
-        console.log("Cleaning up lock:", currentLock);
         releaseLock().catch(console.error);
       }
     };
@@ -41,7 +40,6 @@ export default function AppointmentGrid() {
   // Subscribe to WebSocket updates
   useEffect(() => {
     const handleMessage = (message: WebSocketMessage) => {
-      console.log("WebSocket message received:", message);
 
       if (
         message.type === "CURSOR_MOVE" &&
@@ -77,9 +75,6 @@ export default function AppointmentGrid() {
         message.type === "LOCK_RELEASED" &&
         message.appointmentId === currentLock
       ) {
-        console.log(
-          "Lock was released for current appointment, clearing state"
-        );
         if (typeof window !== "undefined") {
           localStorage.removeItem("currentLock");
         }

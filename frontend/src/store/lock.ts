@@ -64,7 +64,6 @@ export const useLockStore = create<LockState>((set, get) => ({
 
         // Store the cleanup function for later removal
         const removeListeners = () => {
-          console.log('Removing event listeners');
           window.removeEventListener('beforeunload', cleanup);
           document.removeEventListener('visibilitychange', cleanup);
         };
@@ -77,9 +76,7 @@ export const useLockStore = create<LockState>((set, get) => ({
 
   acquireLock: async (appointmentId: string) => {
     try {
-      console.log('Acquiring lock for:', appointmentId);
       await api.post(`/appointments/${appointmentId}/acquire-lock`);
-      console.log('Lock acquired, setting state');
 
       // Persist lock in localStorage
       if (typeof window !== 'undefined') {
@@ -126,7 +123,6 @@ export const useLockStore = create<LockState>((set, get) => ({
 
         // Store the cleanup function for later removal
         const removeListeners = () => {
-          console.log('Removing event listeners');
           window.removeEventListener('beforeunload', cleanup);
           document.removeEventListener('visibilitychange', cleanup);
         };
@@ -141,16 +137,12 @@ export const useLockStore = create<LockState>((set, get) => ({
   },
 
   releaseLock: async () => {
-    console.log('Release lock called');
     const currentLock = get().currentLock;
     const cleanup = get().cleanup;
-    console.log('Current lock:', currentLock);
 
     if (currentLock) {
       try {
-        console.log('Sending release request');
         await api.delete(`/appointments/${currentLock}/release-lock`);
-        console.log('Lock released successfully');
         if (cleanup) {
           cleanup();
         }

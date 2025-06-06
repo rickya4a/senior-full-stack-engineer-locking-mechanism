@@ -30,12 +30,14 @@ export interface CursorPosition {
   userName: string;
 }
 
-export type WebSocketMessageType = 'LOCK_ACQUIRED' | 'LOCK_RELEASED' | 'CURSOR_MOVE';
+export type WebSocketMessageType = 'LOCK_ACQUIRED' | 'LOCK_RELEASED' | 'CURSOR_MOVE' | 'ERROR';
 
 export interface WebSocketMessage {
   type: WebSocketMessageType;
   appointmentId: string;
   data: Lock | CursorPosition | null;
+  message?: string;
+  token?: string;
 }
 
 export interface AuthResponse {
