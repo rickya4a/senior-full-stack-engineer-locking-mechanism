@@ -194,7 +194,7 @@ export default function AppointmentGrid() {
       }
 
       await acquireLock(appointmentId);
-      await fetchAppointments(); // Refresh the list
+      await fetchAppointments();
       toast.success("Successfully acquired control");
     } catch (error) {
       console.error(error);
@@ -211,7 +211,7 @@ export default function AppointmentGrid() {
         setActionLoading(appointmentId);
       }
       await releaseLock();
-      await fetchAppointments(); // Refresh the list
+      await fetchAppointments();
       toast.success("Successfully released control");
     } catch (error) {
       console.error(error);

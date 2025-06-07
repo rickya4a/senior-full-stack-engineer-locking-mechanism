@@ -29,7 +29,11 @@ interface AppointmentFormProps {
   onSaved?: () => void;
 }
 
-export default function AppointmentForm({ appointment, isLocked, onSaved }: AppointmentFormProps) {
+export default function AppointmentForm({
+  appointment,
+  isLocked,
+  onSaved,
+}: AppointmentFormProps) {
   const {
     register,
     handleSubmit,
@@ -77,7 +81,7 @@ export default function AppointmentForm({ appointment, isLocked, onSaved }: Appo
         endTime: new Date(data.endTime).toISOString()
       });
 
-      reset(data); // Reset form state to remove dirty flag
+      reset(data);
       onSaved?.();
     } catch (error) {
       if (error instanceof Error) {
@@ -112,7 +116,7 @@ export default function AppointmentForm({ appointment, isLocked, onSaved }: Appo
           id="title"
           {...register('title')}
           disabled={!isLocked}
-          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+          className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
             !isLocked ? 'bg-gray-100 cursor-not-allowed' : ''
           }`}
         />
@@ -130,7 +134,7 @@ export default function AppointmentForm({ appointment, isLocked, onSaved }: Appo
           rows={3}
           {...register('description')}
           disabled={!isLocked}
-          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+          className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
             !isLocked ? 'bg-gray-100 cursor-not-allowed' : ''
           }`}
         />
@@ -149,7 +153,7 @@ export default function AppointmentForm({ appointment, isLocked, onSaved }: Appo
             id="startTime"
             {...register('startTime')}
             disabled={!isLocked}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+            className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
               !isLocked ? 'bg-gray-100 cursor-not-allowed' : ''
             }`}
           />
@@ -167,7 +171,7 @@ export default function AppointmentForm({ appointment, isLocked, onSaved }: Appo
             id="endTime"
             {...register('endTime')}
             disabled={!isLocked}
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm ${
+            className={`block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 ${
               !isLocked ? 'bg-gray-100 cursor-not-allowed' : ''
             }`}
           />

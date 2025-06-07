@@ -51,7 +51,6 @@ graph TD
 4. **Rate Limiting**
    - In-memory rate limiting for API endpoints
    - Separate limits for lock operations
-   - Prevents abuse of the locking system
 
 ### Frontend Components
 
@@ -77,13 +76,12 @@ graph TD
 
 ### Lock Acquisition Flow
 1. User requests lock through UI
-2. Frontend sends POST request to /appointments/:id/acquire-lock
-3. Backend validates request and checks existing locks
-4. If successful:
+2. Frontend sends POST request to ```/appointments/:id/acquire-lock```
+3. If successful:
    - Creates lock in database
    - Broadcasts lock status via WebSocket
    - Returns success response
-5. Frontend updates UI and enables editing
+4. Frontend updates UI and enables editing
 
 ### Real-time Cursor Updates
 1. User moves cursor in locked appointment
@@ -198,25 +196,35 @@ graph TD
 
 ## Design Patterns Used
 
-1. **Singleton Pattern**
-   - WebSocket service
-   - Database connection
-   - Rate limiter
+1. **Observer Pattern (WebSocket Events)**
+   ```typescript
+   class WebSocketService {
+     private messageHandlers: Set<MessageHandler> = new Set();
 
-2. **Observer Pattern**
-   - WebSocket event handling
-   - Lock status updates
-   - Cursor position broadcasting
+     public subscribe(handler: MessageHandler) {
+       this.messageHandlers.add(handler);
+       return () => this.messageHandlers.delete(handler);
+     }
+   }
+   ```
+   - WebSocket message subscription system
+   - Lock status broadcasts
+   - Cursor position updates
+   - Clean unsubscribe handling
 
-3. **Factory Pattern**
-   - API response formatting
-   - Error handling
-   - WebSocket message creation
+2. **Service Pattern**
+   ```typescript
+   export class LockService {
+     static async acquireLock(appointmentId: string, userId: string): Promise<LockResponse>
+     static async releaseLock(appointmentId: string, userId?: string): Promise<LockResponse>
+     static async getLockStatus(appointmentId: string): Promise<LockResponse>
+   }
+   ```
+   - Lock service for business logic
+   - Audit service for logging
+   - WebSocket service for real-time communication
 
-4. **Repository Pattern**
-   - Database access
-   - Lock management
-   - Audit logging
+These patterns are actively used in the codebase to maintain code organization, promote reusability, and ensure proper resource management. Each pattern serves a specific purpose in making the application more maintainable and scalable.
 
 ## Future Improvements
 
@@ -227,7 +235,6 @@ graph TD
 
 2. **Features**
    - Collaborative editing
-   - Conflict resolution
    - Change history tracking
 
 3. **Monitoring**
