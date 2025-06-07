@@ -44,3 +44,21 @@ export interface AuthResponse {
   user: User;
   token: string;
 }
+
+export interface LockAudit {
+  id: string;
+  action: string;
+  admin: {
+    name: string;
+    email: string;
+  };
+  targetUser: {
+    name: string;
+    email: string;
+  };
+  appointment: {
+    title: string;
+  };
+  reason?: string;
+  createdAt: string;
+}

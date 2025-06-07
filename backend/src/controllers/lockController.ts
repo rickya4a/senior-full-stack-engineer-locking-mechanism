@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { LockService } from '../services/lockService';
+import { AuditService } from '../services/auditService';
 
 export class LockController {
   static async acquireLock(req: Request, res: Response): Promise<void> {
@@ -71,12 +72,39 @@ export class LockController {
   static async adminReleaseLock(req: Request, res: Response): Promise<void> {
     try {
       const { appointmentId } = req.params;
+      const { reason } = req.body;
 
+      // Get current lock info before releasing
+      const currentLock = await LockService.getLockStatus(appointmentId);
+
+      // Proceed with lock release
       const result = await LockService.releaseLock(appointmentId);
+
+      // If release was successful and there was an active lock, log it
+      if (result.success && currentLock.lock) {
+        await AuditService.logForcedRelease(
+          req.user!.id,
+          currentLock.lock.userId,
+          appointmentId,
+          reason
+        );
+      }
+
       res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       console.error('Error in adminReleaseLock controller:', error);
       res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  static async getAuditLogs(req: Request, res: Response): Promise<void> {
+    try {
+      const { appointmentId } = req.query;
+      const logs = await AuditService.getAuditLogs(appointmentId as string);
+      res.status(200).json(logs);
+    } catch (error) {
+      console.error('Error getting audit logs:', error);
+      res.status(500).json({ message: 'Failed to retrieve audit logs' });
     }
   }
 }

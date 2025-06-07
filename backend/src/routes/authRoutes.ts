@@ -8,8 +8,8 @@ const router = Router();
 
 router.use(rateLimiter);
 
-router.post('/register', authRateLimiter, AuthController.register);
-router.post('/login', authRateLimiter, AuthController.login);
+router.post('/auth/register', authRateLimiter, AuthController.register);
+router.post('/auth/login', authRateLimiter, AuthController.login);
 
 router.get('/auth/me', authenticate, (req, res) => {
   res.json({ user: req.user });

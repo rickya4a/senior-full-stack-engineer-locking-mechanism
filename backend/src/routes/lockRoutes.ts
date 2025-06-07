@@ -48,4 +48,12 @@ router.delete(
   LockController.adminReleaseLock
 );
 
+// Get audit logs (admin only)
+router.get(
+  '/audit-logs',
+  authenticate,
+  adminOnly,
+  LockController.getAuditLogs
+);
+
 export default router;

@@ -23,6 +23,8 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   locks     Lock[]
+  adminAudits LockAudit[] @relation("AdminAudits")
+  targetAudits LockAudit[] @relation("TargetUserAudits")
 }
 
 model Appointment {
@@ -34,6 +36,7 @@ model Appointment {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   lock        Lock?
+  audits       LockAudit[]
 }
 
 model Lock {
@@ -45,6 +48,23 @@ model Lock {
   updatedAt     DateTime    @updatedAt
   appointment   Appointment @relation(fields: [appointmentId], references: [id])
   user          User        @relation(fields: [userId], references: [id])
+}
+
+model LockAudit {
+  id        String   @id @default(uuid())
+  action    String   // e.g., "FORCE_RELEASE"
+  adminId   String
+  admin     User     @relation("AdminAudits", fields: [adminId], references: [id])
+  targetUserId String
+  targetUser User    @relation("TargetUserAudits", fields: [targetUserId], references: [id])
+  appointmentId String
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
+  @@index([targetUserId])
+  @@index([appointmentId])
 }
 
 enum Role {
