@@ -50,9 +50,6 @@ export default function LockInfo({ lock, onLockReleased }: LockInfoProps) {
             <p className="text-sm text-yellow-700">
               Currently being edited by <span className="font-semibold">{lock.user.name}</span>
             </p>
-            <p className="text-xs text-yellow-600 mt-1">
-              Lock expires at {new Date(lock.expiresAt).toLocaleTimeString()}
-            </p>
           </div>
           {isAdmin && !isOwnLock && (
             <div>

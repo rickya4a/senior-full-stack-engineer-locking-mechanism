@@ -5,9 +5,12 @@ import Cookies from 'js-cookie';
 interface LockState {
   currentLock: string | null;
   cleanup: (() => void) | null;
+  lastActivity: number | null;
   releaseLock: () => Promise<void>;
   acquireLock: (appointmentId: string) => Promise<void>;
   initializeLock: () => void;
+  setupAutoExtend: () => void;
+  updateActivity: () => void;
 }
 
 // Helper to get persisted lock
@@ -20,58 +23,109 @@ const getPersistedLock = () => {
 export const useLockStore = create<LockState>((set, get) => ({
   currentLock: getPersistedLock(),
   cleanup: null,
+  lastActivity: null,
+
+  updateActivity: () => {
+    set({ lastActivity: Date.now() });
+  },
 
   initializeLock: () => {
     const currentLock = getPersistedLock();
     if (currentLock) {
-      set({ currentLock });
-
-      // Setup cleanup when tab/window is closed
-      if (typeof window !== 'undefined') {
-        const cleanup = () => {
-          const lock = get().currentLock;
-          const token = Cookies.get('token');
-
-          if (lock && token) {
-            try {
-              const blob = new Blob([JSON.stringify({
-                appointmentId: lock,
-                authorization: `Bearer ${token}`
-              })], {
-                type: 'application/json'
-              });
-
-              navigator.sendBeacon(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/appointments/release-lock`,
-                blob
-              );
-
-              // Clear persisted lock
-              localStorage.removeItem('currentLock');
-            } catch (error) {
-              console.error('Failed to release lock during cleanup:', error);
-            }
-          }
-        };
-
-        // Add event listeners
-        window.addEventListener('beforeunload', cleanup);
-        document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'hidden') {
-            cleanup();
-          }
-        });
-
-        // Store the cleanup function for later removal
-        const removeListeners = () => {
-          window.removeEventListener('beforeunload', cleanup);
-          document.removeEventListener('visibilitychange', cleanup);
-        };
-
-        // Store cleanup function in state
-        set({ cleanup: removeListeners });
-      }
+      set({ currentLock, lastActivity: Date.now() });
+      // Setup auto-extend and cleanup
+      get().setupAutoExtend();
     }
+  },
+
+  setupAutoExtend: () => {
+    const CHECK_INTERVAL = 10000; // Check every 10 seconds
+    const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+
+    // Clear any existing intervals
+    const existingCleanup = get().cleanup;
+    if (typeof existingCleanup === 'function') {
+      existingCleanup();
+    }
+
+    const checkInactivity = async () => {
+      const { lastActivity } = get();
+      if (!lastActivity) return;
+
+      const now = Date.now();
+      const inactiveTime = now - lastActivity;
+
+      // Release lock if user has been inactive
+      if (inactiveTime >= INACTIVITY_TIMEOUT) {
+        console.log('Releasing lock due to inactivity');
+        await get().releaseLock();
+        return;
+      }
+    };
+
+    // Setup periodic check
+    const interval = setInterval(checkInactivity, CHECK_INTERVAL);
+
+    // Setup activity tracking
+    const activityEvents = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+    const handleActivity = () => get().updateActivity();
+
+    activityEvents.forEach(event => {
+      window.addEventListener(event, handleActivity);
+    });
+
+    // Setup cleanup when tab/window is closed
+    const cleanup = () => {
+      clearInterval(interval);
+      const currentLock = get().currentLock;
+      const token = Cookies.get('token');
+
+      // Remove activity listeners
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, handleActivity);
+      });
+
+      if (currentLock && token) {
+        try {
+          const blob = new Blob([JSON.stringify({
+            appointmentId: currentLock,
+            authorization: `Bearer ${token}`
+          })], {
+            type: 'application/json'
+          });
+
+          navigator.sendBeacon(
+            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/appointments/release-lock`,
+            blob
+          );
+
+          localStorage.removeItem('currentLock');
+        } catch (error) {
+          console.error('Failed to release lock during cleanup:', error);
+        }
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('beforeunload', cleanup);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        cleanup();
+      }
+    });
+
+    // Store cleanup function
+    const removeListeners = () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', cleanup);
+      document.removeEventListener('visibilitychange', cleanup);
+      // Remove activity listeners
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, handleActivity);
+      });
+    };
+
+    set({ cleanup: removeListeners });
   },
 
   acquireLock: async (appointmentId: string) => {
@@ -83,53 +137,13 @@ export const useLockStore = create<LockState>((set, get) => ({
         localStorage.setItem('currentLock', appointmentId);
       }
 
-      set({ currentLock: appointmentId });
+      set({
+        currentLock: appointmentId,
+        lastActivity: Date.now()
+      });
 
-      // Setup cleanup when tab/window is closed
-      if (typeof window !== 'undefined') {
-        const cleanup = () => {
-          const currentLock = get().currentLock;
-          const token = Cookies.get('token');
-
-          if (currentLock && token) {
-            try {
-              const blob = new Blob([JSON.stringify({
-                appointmentId: currentLock,
-                authorization: `Bearer ${token}`
-              })], {
-                type: 'application/json'
-              });
-
-              navigator.sendBeacon(
-                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/appointments/release-lock`,
-                blob
-              );
-
-              // Clear persisted lock
-              localStorage.removeItem('currentLock');
-            } catch (error) {
-              console.error('Failed to release lock during cleanup:', error);
-            }
-          }
-        };
-
-        // Add event listeners
-        window.addEventListener('beforeunload', cleanup);
-        document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'hidden') {
-            cleanup();
-          }
-        });
-
-        // Store the cleanup function for later removal
-        const removeListeners = () => {
-          window.removeEventListener('beforeunload', cleanup);
-          document.removeEventListener('visibilitychange', cleanup);
-        };
-
-        // Store cleanup function in state
-        set({ cleanup: removeListeners });
-      }
+      // Setup auto-extend
+      get().setupAutoExtend();
     } catch (error) {
       console.error('Failed to acquire lock:', error);
       throw error;
@@ -143,7 +157,7 @@ export const useLockStore = create<LockState>((set, get) => ({
     if (currentLock) {
       try {
         await api.delete(`/appointments/${currentLock}/release-lock`);
-        if (cleanup) {
+        if (typeof cleanup === 'function') {
           cleanup();
         }
 
@@ -152,7 +166,7 @@ export const useLockStore = create<LockState>((set, get) => ({
           localStorage.removeItem('currentLock');
         }
 
-        set({ currentLock: null, cleanup: null });
+        set({ currentLock: null, cleanup: null, lastActivity: null });
       } catch (error) {
         console.error('Failed to release lock:', error);
         throw error;
