@@ -281,7 +281,7 @@ export default function AppointmentGrid() {
                       Loading...
                     </span>
                   ) : (
-                    "Request Control"
+                    "Edit"
                   )}
                 </button>
               )}

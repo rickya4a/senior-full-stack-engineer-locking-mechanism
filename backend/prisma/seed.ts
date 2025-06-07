@@ -38,23 +38,23 @@ async function main() {
   // Create test appointments
   const now = new Date();
   const tomorrow = new Date(now.setDate(now.getDate() + 1));
-  const dayAfter = new Date(now.setDate(now.getDate() + 1));
+  const dayAfter = new Date(now.setDate(now.getDate() + 2));
 
   await prisma.appointment.create({
     data: {
-      title: 'Team Meeting',
-      description: 'Weekly team sync-up',
+      title: 'Physiotherapy',
+      description: 'Physiotherapy appointment',
       startTime: tomorrow,
-      endTime: new Date(tomorrow.getTime() + 60 * 60 * 1000), // 1 hour later
+      endTime: new Date(tomorrow.getTime() + 60 * 60 * 1000),
     }
   });
 
   await prisma.appointment.create({
     data: {
-      title: 'Project Review',
-      description: 'Monthly project status review',
+      title: 'Hypertension Checkup',
+      description: 'Hypertension checkup appointment',
       startTime: dayAfter,
-      endTime: new Date(dayAfter.getTime() + 120 * 60 * 1000), // 2 hours later
+      endTime: new Date(dayAfter.getTime() + 120 * 60 * 1000),
     }
   });
 

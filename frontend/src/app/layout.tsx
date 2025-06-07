@@ -3,7 +3,11 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import AuthInitializer from "@/components/layout/AuthInitializer";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "Appointment System",

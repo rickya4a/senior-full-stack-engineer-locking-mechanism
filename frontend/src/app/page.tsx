@@ -20,7 +20,7 @@ export default function HomePage() {
               <span className="text-gray-700">Welcome, {user?.name}</span>
               <button
                 onClick={logout}
-                className="text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 transition-colors"
+                className="text-sm bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition-colors"
               >
                 Logout
               </button>
