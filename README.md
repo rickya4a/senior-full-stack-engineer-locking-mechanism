@@ -86,6 +86,6 @@ Implement a locking mechanism to prevent concurrent edits on an appointment. Onl
 - Bonus feature implementation quality
 
 ## Suggested Tech Stack
-- **Backend**: Node.js, Express, Prisma, WebSocket
-- **Frontend**: React, TypeScript, React-Query, Zustand
+- **Backend**: Node.js, Express, TypeORM/Prisma, WebSocket
+- **Frontend**: React, TypeScript, React-Query, Zustand/Jotai
 - **UI**: aceternity/ui for animated cursor, Tailwind CSS
