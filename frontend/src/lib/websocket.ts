@@ -17,8 +17,7 @@ class WebSocketService {
   }
 
   private connect() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
-    const wsUrl = apiUrl.replace(/^http/, 'ws').replace('/api', '');
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000';
 
     this.ws = new WebSocket(wsUrl);
 
@@ -54,10 +53,9 @@ class WebSocketService {
   private attemptReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       setTimeout(() => {
-        console.log(`Attempting to reconnect (${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})...`);
         this.connect();
         this.reconnectAttempts++;
-        this.reconnectTimeout *= 2; // Exponential backoff
+        this.reconnectTimeout *= 2;
       }, this.reconnectTimeout);
     }
   }
