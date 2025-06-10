@@ -11,6 +11,7 @@ import LockInfo from "./LockInfo";
 import AppointmentForm from "./AppointmentForm";
 import CollaborativeCursor from "./CollaborativeCursor";
 import { wsService } from "@/lib/websocket";
+import AppointmentModal from "./AppointmentModal";
 
 export default function AppointmentGrid() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -18,6 +19,7 @@ export default function AppointmentGrid() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [cursors, setCursors] = useState<{ [key: string]: CursorPosition }>({});
   const { user } = useAuthStore();
+  const [openModal, setOpenModal] = useState(false);
   const { acquireLock, releaseLock, currentLock, initializeLock } =
     useLockStore();
 
@@ -40,6 +42,11 @@ export default function AppointmentGrid() {
   // Subscribe to WebSocket updates
   useEffect(() => {
     const handleMessage = (message: WebSocketMessage) => {
+      // Refetch appointments on relevant message types
+      if (message.type === "APPOINTMENT_UPDATED") {
+        fetchAppointments();
+        return;
+      }
 
       if (
         message.type === "CURSOR_MOVE" &&
@@ -135,12 +142,6 @@ export default function AppointmentGrid() {
           userName: user.name,
         };
 
-        wsService.send({
-          type: "CURSOR_MOVE",
-          appointmentId: currentLock,
-          data: cursorPosition,
-        });
-
         throttleTimeout = null;
       }, throttleDelay);
     };
@@ -194,7 +195,6 @@ export default function AppointmentGrid() {
       }
 
       await acquireLock(appointmentId);
-      await fetchAppointments();
       toast.success("Successfully acquired control");
     } catch (error) {
       console.error(error);
@@ -255,19 +255,30 @@ export default function AppointmentGrid() {
                 <>
                   <LockInfo
                     lock={appointment.lock}
-                    onLockReleased={fetchAppointments}
+                    onLockReleased={() => {
+                      fetchAppointments();
+                      setOpenModal(false);
+                    }}
                   />
-                  <div className="mt-4">
+                  {appointment.lock.userId === user?.id && (
+                  <AppointmentModal open={openModal} onClose={() => setOpenModal(false)}>
                     <AppointmentForm
                       appointment={appointment}
                       isLocked={appointment.lock.userId === user?.id}
-                      onSaved={fetchAppointments}
-                    />
-                  </div>
+                      onSaved={() => {
+                        fetchAppointments();
+                        setOpenModal(false);
+                        }}
+                      />
+                    </AppointmentModal>
+                  )}
                 </>
               ) : (
                 <button
-                  onClick={() => handleRequestControl(appointment.id)}
+                  onClick={() => {
+                    setOpenModal(true);
+                    handleRequestControl(appointment.id);
+                  }}
                   disabled={!!currentLock || actionLoading === appointment.id}
                   className={`w-full py-2 px-4 rounded text-sm font-medium ${
                     currentLock || actionLoading === appointment.id

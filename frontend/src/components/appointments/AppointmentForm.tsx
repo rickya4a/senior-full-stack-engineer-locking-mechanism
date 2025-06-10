@@ -53,6 +53,15 @@ export default function AppointmentForm({
   // Watch form changes for auto-save
   const formValues = watch();
 
+  useEffect(() => {
+    reset({
+      title: appointment.title,
+      description: appointment.description || '',
+      startTime: dayjs(appointment.startTime).format('YYYY-MM-DDTHH:mm'),
+      endTime: dayjs(appointment.endTime).format('YYYY-MM-DDTHH:mm')
+    });
+  }, [appointment, reset]);
+
   // Auto-save when form is dirty and not locked
   useEffect(() => {
     if (!isLocked || !isDirty) return;

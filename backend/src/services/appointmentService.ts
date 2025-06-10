@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma';
 import { Appointment } from '../generated/prisma';
+import { broadcastMessage } from '../lib/websocket';
 
 export class AppointmentService {
   static async create(data: {
@@ -44,10 +45,18 @@ export class AppointmentService {
     startTime?: Date;
     endTime?: Date;
   }): Promise<Appointment> {
-    return prisma.appointment.update({
+    const appointment = await prisma.appointment.update({
       where: { id },
       data
     });
+
+    broadcastMessage({
+      type: 'APPOINTMENT_UPDATED',
+      appointmentId: id,
+      data: null
+    });
+
+    return appointment;
   }
 
   static async delete(id: string): Promise<void> {

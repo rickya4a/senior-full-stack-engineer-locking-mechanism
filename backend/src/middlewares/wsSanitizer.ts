@@ -62,7 +62,7 @@ export const sanitizeWebSocketMessage = (message: any): SanitizeResult => {
     }
 
     // Validate message type
-    if (!message.type || !['LOCK_ACQUIRED', 'LOCK_RELEASED', 'CURSOR_MOVE'].includes(message.type)) {
+    if (!message.type || !['LOCK_ACQUIRED', 'LOCK_RELEASED', 'CURSOR_MOVE', 'APPOINTMENT_UPDATED', 'APPOINTMENT_CREATED', 'APPOINTMENT_DELETED'].includes(message.type)) {
       return { isValid: false, error: 'Invalid message type' };
     }
 

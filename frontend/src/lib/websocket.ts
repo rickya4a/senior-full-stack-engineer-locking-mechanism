@@ -30,6 +30,7 @@ class WebSocketService {
     this.ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data) as WebSocketMessage;
+        console.log('Received message:', data);
         if (data.type === 'ERROR') {
           console.error('WebSocket error:', data.message);
           return;

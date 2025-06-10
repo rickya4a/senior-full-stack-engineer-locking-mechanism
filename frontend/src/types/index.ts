@@ -30,7 +30,7 @@ export interface CursorPosition {
   userName: string;
 }
 
-export type WebSocketMessageType = 'LOCK_ACQUIRED' | 'LOCK_RELEASED' | 'CURSOR_MOVE' | 'ERROR';
+export type WebSocketMessageType = 'LOCK_ACQUIRED' | 'LOCK_RELEASED' | 'CURSOR_MOVE' | 'ERROR' | 'APPOINTMENT_UPDATED' | 'APPOINTMENT_CREATED' | 'APPOINTMENT_DELETED';
 
 export interface WebSocketMessage {
   type: WebSocketMessageType;
