@@ -261,13 +261,20 @@ export default function AppointmentGrid() {
                     }}
                   />
                   {appointment.lock.userId === user?.id && (
-                  <AppointmentModal open={openModal} onClose={() => setOpenModal(false)}>
-                    <AppointmentForm
-                      appointment={appointment}
-                      isLocked={appointment.lock.userId === user?.id}
-                      onSaved={() => {
-                        fetchAppointments();
+                    <AppointmentModal
+                      open={openModal}
+                      onClose={() => {
+                        handleReleaseLock();
                         setOpenModal(false);
+                        fetchAppointments();
+                      }}
+                    >
+                      <AppointmentForm
+                        appointment={appointment}
+                        isLocked={appointment.lock.userId === user?.id}
+                        onSaved={() => {
+                          fetchAppointments();
+                          setOpenModal(false);
                         }}
                       />
                     </AppointmentModal>
@@ -293,27 +300,6 @@ export default function AppointmentGrid() {
                     </span>
                   ) : (
                     "Edit"
-                  )}
-                </button>
-              )}
-
-              {currentLock === appointment.id && (
-                <button
-                  onClick={handleReleaseLock}
-                  disabled={actionLoading === appointment.id}
-                  className={`w-full mt-2 py-2 px-4 rounded text-sm font-medium ${
-                    actionLoading === appointment.id
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-red-500 hover:bg-red-600 text-white"
-                  }`}
-                >
-                  {actionLoading === appointment.id ? (
-                    <span className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Loading...
-                    </span>
-                  ) : (
-                    "Release Control"
                   )}
                 </button>
               )}

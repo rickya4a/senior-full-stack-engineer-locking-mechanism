@@ -27,7 +27,15 @@ export interface CursorPosition {
 }
 
 export interface WebSocketMessage {
-  type: 'LOCK_ACQUIRED' | 'LOCK_RELEASED' | 'CURSOR_MOVE' | 'ERROR' | 'APPOINTMENT_UPDATED' | 'APPOINTMENT_CREATED' | 'APPOINTMENT_DELETED';
+  type: 'LOCK_ACQUIRED' |
+  'LOCK_RELEASED' |
+  'CURSOR_MOVE' |
+  'ERROR' |
+  'APPOINTMENT_UPDATED' |
+  'APPOINTMENT_CREATED' |
+  'APPOINTMENT_DELETED' |
+  'APPOINTMENT_LOCKED' |
+  'APPOINTMENT_UNLOCKED';
   appointmentId: string;
   data: Lock | CursorPosition | null;
   message?: string;
